@@ -13,9 +13,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Promise\EachPromise;
 use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\TransportSharing;
 use GuzzleHttp\UriTemplate\UriTemplate;
-use GuzzleHttp\Utils;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Client\Events\ConnectionFailed;
 use Illuminate\Http\Client\Events\RequestSending;
@@ -34,7 +32,6 @@ use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use RuntimeException;
 use Symfony\Component\VarDumper\VarDumper;
 use Throwable;
 
@@ -1717,49 +1714,7 @@ class PendingRequest
             return $this->handler;
         }
 
-        $mode = $this->resolveTransportSharingMode();
-
-        return is_null($mode)
-            ? $this->handler
-            : Utils::chooseHandler(['transport_sharing' => $mode]);
-    }
-
-    /**
-     * Resolve the Guzzle "transport_sharing" mode for the configured persistence level.
-     *
-     * @return string|null
-     *
-     * @throws \RuntimeException
-     */
-    protected function resolveTransportSharingMode()
-    {
-        if ($this->persistentTransport === PersistentTransport::None) {
-            return null;
-        }
-
-        // When faking, the stub handler answers before the base handler runs, so a
-        // sharing transport is never needed (and "Required" must not throw in tests).
-        if (($this->stubCallbacks?->isNotEmpty() ?? false) || $this->preventStrayRequests) {
-            return null;
-        }
-
-        $required = $this->persistentTransport === PersistentTransport::Required;
-
-        // Guzzle 8: persistent (cross-request) sharing.
-        if (defined(TransportSharing::class.'::PERSISTENT_PREFER') && defined(TransportSharing::class.'::PERSISTENT_REQUIRE')) {
-            return $required ? TransportSharing::PERSISTENT_REQUIRE : TransportSharing::PERSISTENT_PREFER;
-        }
-
-        if ($required) {
-            throw new RuntimeException('Persistent HTTP transport sharing is set to "Required", but persistent cURL share handles require guzzlehttp/guzzle ^8.0.');
-        }
-
-        // Guzzle 7.11: handler-lifetime sharing only, best-effort.
-        if (class_exists(TransportSharing::class)) {
-            return TransportSharing::HANDLER_PREFER;
-        }
-
-        return null;
+        return $this->persistentTransport->handler();
     }
 
     /**

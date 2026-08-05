@@ -9,6 +9,7 @@ use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use GuzzleHttp\TransferStats;
+use GuzzleHttp\Utils;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -173,6 +174,16 @@ class Factory
         $this->globalPersistentTransport = $mode;
 
         return $this;
+    }
+
+    /**
+     * Create a new base Guzzle handler honoring the global persistent transport mode.
+     *
+     * @return callable
+     */
+    public function newHandler()
+    {
+        return $this->globalPersistentTransport->handler() ?? Utils::chooseHandler();
     }
 
     /**

@@ -5000,6 +5000,71 @@ class HttpClientTest extends TestCase
             ->get('https://example.com');
     }
 
+    public function testRequiredPersistentTransportAppliesToUnfakedRequests()
+    {
+        if (defined('GuzzleHttp\TransportSharing::PERSISTENT_PREFER')) {
+            $this->markTestSkipped('Persistent transport sharing is available.');
+        }
+
+        $this->factory->fake(['https://faked.example/*' => $this->factory::response('ok')]);
+        $this->factory->globalPersistentTransport(PersistentTransport::Required);
+
+        $this->assertSame('ok', $this->factory->get('https://faked.example/users')->body());
+
+        $this->expectException(RuntimeException::class);
+
+        $this->factory->get('https://example.com');
+    }
+
+    public function testRequiredPersistentTransportDoesNotThrowWhenPreventingStrayRequests()
+    {
+        $this->factory->preventStrayRequests();
+        $this->factory->globalPersistentTransport(PersistentTransport::Required);
+
+        $this->expectException(StrayRequestException::class);
+
+        $this->factory->get('https://example.com');
+    }
+
+    public function testPoolRequiredPersistentTransportDoesNotThrowWhenFaking()
+    {
+        $this->factory->fake();
+        $this->factory->globalPersistentTransport(PersistentTransport::Required);
+
+        $responses = $this->factory->pool(function (Pool $pool) {
+            return [$pool->get('https://example.com')];
+        });
+
+        $this->assertSame(200, $responses[0]->status());
+    }
+
+    public function testPoolRequiredPersistentTransportThrowsWhenPersistentSharingIsUnavailable()
+    {
+        if (defined('GuzzleHttp\TransportSharing::PERSISTENT_PREFER')) {
+            $this->markTestSkipped('Persistent transport sharing is available.');
+        }
+
+        $this->factory->globalPersistentTransport(PersistentTransport::Required);
+
+        $responses = $this->factory->pool(function (Pool $pool) {
+            return [$pool->get('https://example.com')];
+        });
+
+        $this->assertInstanceOf(RuntimeException::class, $responses[0]);
+    }
+
+    public function testBatchRequiredPersistentTransportDoesNotThrowWhenFaking()
+    {
+        $this->factory->fake();
+        $this->factory->globalPersistentTransport(PersistentTransport::Required);
+
+        $responses = $this->factory->batch(function (Batch $batch) {
+            return [$batch->get('https://example.com')];
+        })->send();
+
+        $this->assertSame(200, $responses[0]->status());
+    }
+
     public function testNetworkExceptionIsConvertedToConnectionException()
     {
         if (! class_exists(NetworkException::class)) {
