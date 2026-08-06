@@ -23,7 +23,7 @@ trait InteractsWithDatabase
      * @param  string|null  $connection
      * @return $this
      */
-    protected function assertDatabaseHas($table, array $data = [], $connection = null)
+    public function assertDatabaseHas($table, array $data = [], $connection = null)
     {
         if (is_iterable($table)) {
             foreach ($table as $item) {
@@ -63,7 +63,7 @@ trait InteractsWithDatabase
      * @param  string|null  $connection
      * @return $this
      */
-    protected function assertDatabaseMissing($table, array $data = [], $connection = null)
+    public function assertDatabaseMissing($table, array $data = [], $connection = null)
     {
         if (is_iterable($table)) {
             foreach ($table as $item) {
@@ -105,7 +105,7 @@ trait InteractsWithDatabase
      * @param  string|null  $connection
      * @return $this
      */
-    protected function assertDatabaseCount($table, int $count, $connection = null)
+    public function assertDatabaseCount($table, int $count, $connection = null)
     {
         $this->assertThat(
             $this->getTable($table), new CountInDatabase($this->getConnection($connection, $table), $count)
@@ -121,7 +121,7 @@ trait InteractsWithDatabase
      * @param  string|null  $connection
      * @return $this
      */
-    protected function assertDatabaseEmpty($table, $connection = null)
+    public function assertDatabaseEmpty($table, $connection = null)
     {
         if (is_iterable($table)) {
             foreach ($table as $item) {
@@ -147,7 +147,7 @@ trait InteractsWithDatabase
      * @param  string|null  $deletedAtColumn
      * @return $this
      */
-    protected function assertSoftDeleted($table, array $data = [], $connection = null, $deletedAtColumn = 'deleted_at')
+    public function assertSoftDeleted($table, array $data = [], $connection = null, $deletedAtColumn = 'deleted_at')
     {
         if (is_iterable($table)) {
             foreach ($table as $item) {
@@ -195,7 +195,7 @@ trait InteractsWithDatabase
      * @param  string|null  $deletedAtColumn
      * @return $this
      */
-    protected function assertNotSoftDeleted($table, array $data = [], $connection = null, $deletedAtColumn = 'deleted_at')
+    public function assertNotSoftDeleted($table, array $data = [], $connection = null, $deletedAtColumn = 'deleted_at')
     {
         if (is_iterable($table)) {
             foreach ($table as $item) {
@@ -240,7 +240,7 @@ trait InteractsWithDatabase
      * @param  iterable<\Illuminate\Database\Eloquent\Model>|\Illuminate\Database\Eloquent\Model|class-string<\Illuminate\Database\Eloquent\Model>|string  $model
      * @return $this
      */
-    protected function assertModelExists($model)
+    public function assertModelExists($model)
     {
         return $this->assertDatabaseHas($model);
     }
@@ -251,7 +251,7 @@ trait InteractsWithDatabase
      * @param  iterable<\Illuminate\Database\Eloquent\Model>|\Illuminate\Database\Eloquent\Model|class-string<\Illuminate\Database\Eloquent\Model>|string  $model
      * @return $this
      */
-    protected function assertModelMissing($model)
+    public function assertModelMissing($model)
     {
         return $this->assertDatabaseMissing($model);
     }
